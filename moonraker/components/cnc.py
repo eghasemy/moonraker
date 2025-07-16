@@ -90,6 +90,10 @@ class CNC:
         speed: int = web_request.get_int("speed", default=1000)
         direction: str = web_request.get_str("direction", default="CW")
         
+        # Validate speed range
+        if speed < 0 or speed > 30000:
+            raise self.server.error("Spindle speed must be between 0 and 30000 RPM")
+        
         if direction not in ["CW", "CCW"]:
             raise self.server.error("Invalid spindle direction. Must be 'CW' or 'CCW'")
             
@@ -99,7 +103,10 @@ class CNC:
         else:
             gcode = f"M4 S{speed}"
             
-        result = await self.klippy_apis.run_gcode(gcode)
+        try:
+            result = await self.klippy_apis.run_gcode(gcode)
+        except Exception as e:
+            raise self.server.error(f"Failed to start spindle: {e}")
         
         # Update state
         self.spindle_running = True
@@ -165,9 +172,16 @@ class CNC:
         """Change tool"""
         tool_number: int = web_request.get_int("tool")
         
+        # Validate tool number range
+        if tool_number < 0 or tool_number > 999:
+            raise self.server.error("Tool number must be between 0 and 999")
+        
         # Execute tool change gcode
         gcode = f"T{tool_number}"
-        result = await self.klippy_apis.run_gcode(gcode)
+        try:
+            result = await self.klippy_apis.run_gcode(gcode)
+        except Exception as e:
+            raise self.server.error(f"Failed to change tool: {e}")
         
         self.current_tool = tool_number
         return {"result": "ok", "current_tool": self.current_tool}
