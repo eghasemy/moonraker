@@ -71,6 +71,15 @@ class KlippyAPI(APITransport):
         self.server.register_endpoint(
             "/printer/firmware_restart", RequestType.POST, self._gcode_firmware_restart
         )
+        
+        # Register CNC GCode Aliases
+        self.server.register_endpoint(
+            "/printer/gcode/script", RequestType.POST, self._gcode_script
+        )
+        self.server.register_endpoint(
+            "/printer/cnc/emergency_stop", RequestType.POST, self._cnc_emergency_stop
+        )
+        
         self.server.register_event_handler(
             "server:klippy_disconnect", self._on_klippy_disconnect
         )
@@ -98,6 +107,15 @@ class KlippyAPI(APITransport):
 
     async def _gcode_firmware_restart(self, web_request: WebRequest) -> str:
         return await self.do_restart("FIRMWARE_RESTART")
+
+    async def _gcode_script(self, web_request: WebRequest) -> str:
+        """Execute arbitrary gcode script - useful for CNC operations"""
+        script: str = web_request.get_str('script')
+        return await self.run_gcode(script)
+
+    async def _cnc_emergency_stop(self, web_request: WebRequest) -> str:
+        """Emergency stop for CNC operations"""
+        return await self.emergency_stop()
 
     async def _send_klippy_request(
         self,
