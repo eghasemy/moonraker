@@ -2,6 +2,14 @@
 """
 Example CNC workflow using Moonraker CNC API
 This script demonstrates a typical CNC milling operation workflow.
+
+PREREQUISITES:
+- Klipper with CNC extras configured (spindle, coolant, tool_change, etc.)
+- Moonraker with [cnc] section enabled
+- Proper hardware connections for spindle, coolant, and probing
+
+This example interfaces with Moonraker's CNC API endpoints, which in turn
+communicate with Klipper's CNC extras to provide the actual functionality.
 """
 
 import asyncio
